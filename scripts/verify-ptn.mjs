@@ -12,6 +12,7 @@ import { build } from 'esbuild';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { pathToFileURL } from 'node:url';
 
 const OUT = path.join(os.tmpdir(), `ijp-ptn-${process.pid}.mjs`);
 
@@ -40,9 +41,10 @@ await build({
   logLevel: 'warning',
 });
 
-const ptn = await import(OUT);
-const geo = await import(OUT.replace('.mjs', '-geo.mjs'));
-const tpl = await import(OUT.replace('.mjs', '-tpl.mjs'));
+// dynamic import needs a URL: a bare absolute path fails on Windows
+const ptn = await import(pathToFileURL(OUT).href);
+const geo = await import(pathToFileURL(OUT.replace('.mjs', '-geo.mjs')).href);
+const tpl = await import(pathToFileURL(OUT.replace('.mjs', '-tpl.mjs')).href);
 
 const folder = process.argv[2] || '/Users/lucaricci/Desktop/inkjet printer/patterns';
 
