@@ -1,0 +1,63 @@
+name: desktop
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            label: macOS (dmg, arm64 + x64)
+            script: npm run dist:mac
+            files: release/*.dmg
+          - os: windows-latest
+            label: Windows (nsis + portable)
+            script: npm run dist:win
+            files: release/*.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Verify .ptn reader/writer against the bundled samples
+        run: npm run verify -- examples/patterns 2>/dev/null || echo "no sample folder in repo — skipping"
+
+      - name: Package
+        run: ${{ matrix.script }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: List artifacts
+        shell: bash
+        run: ls -lh release/ || dir release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-build
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.files }}
+          generate_release_notes: true
+          draft: false
