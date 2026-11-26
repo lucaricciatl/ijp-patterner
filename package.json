@@ -1,6 +1,6 @@
 {
   "name": "ijp-patterner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Visual editor for .ptn inkjet deposition pattern files",
   "main": "electron/main.cjs",
   "scripts": {

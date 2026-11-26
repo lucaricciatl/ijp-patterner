@@ -37,7 +37,8 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Verify .ptn reader/writer against the bundled samples
-        run: npm run verify -- examples/patterns 2>/dev/null || echo "no sample folder in repo — skipping"
+        shell: bash
+        run: npm run verify -- examples/patterns
 
       - name: Package
         run: ${{ matrix.script }}
@@ -46,7 +47,7 @@ jobs:
 
       - name: List artifacts
         shell: bash
-        run: ls -lh release/ || dir release
+        run: ls -lh release/
 
       - uses: actions/upload-artifact@v4
         with:
